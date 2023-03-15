@@ -56,11 +56,11 @@ const Reader: React.FC = () => {
       </IonHeader>
       <IonContent>
         <IonList>
-          {entradas.map((entrada) => (
+          {/* {entradas.map((entrada) => (
             <IonItem key={entrada.Codigo_producto}>
               <IonLabel>{entrada.Producto}</IonLabel>
             </IonItem>
-          ))}
+          ))} */}
         </IonList>
       </IonContent>
     </IonPage>

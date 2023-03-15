@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   IonPage,
   IonHeader,
@@ -15,10 +16,71 @@ import {
   IonSelectOption,
   IonIcon,
 } from "@ionic/react";
+import axios from "axios";
 
 import { cameraOutline } from "ionicons/icons";
 
+type Localidad = {
+  id_plaza: number;
+  nombre_local: string;
+};
+
+type Suplidor = {
+  id_suplidor: number;
+  nombre_suplidor: string;
+};
+
+type Usuarios = {
+  id_user: number;
+  nombre_user: string;
+  apellido_user: string;
+  email: string;
+};
+
 const Entradas: React.FC = () => {
+  const [local, setLocal] = useState<Localidad[]>([]);
+  const [suplidor, setSuplidor] = useState<Suplidor[]>([]);
+  const [user, setUser] = useState<Usuarios[]>([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/localidad")
+      .then((response) => {
+        // Aquí puedes manejar la respuesta de la API
+        setLocal(response.data);
+      })
+      .catch((error) => {
+        // Aquí puedes manejar cualquier error que se haya producido
+        console.error(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/suplidor")
+      .then((response) => {
+        // Aquí puedes manejar la respuesta de la API
+        setSuplidor(response.data);
+      })
+      .catch((error) => {
+        // Aquí puedes manejar cualquier error que se haya producido
+        console.error(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/usuarios")
+      .then((response) => {
+        // Aquí puedes manejar la respuesta de la API
+        setUser(response.data);
+      })
+      .catch((error) => {
+        // Aquí puedes manejar cualquier error que se haya producido
+        console.error(error);
+      });
+  }, []);
+
   return (
     <IonPage>
       <IonHeader>
@@ -61,9 +123,14 @@ const Entradas: React.FC = () => {
               placeholder="Suplidor"
               className="ion-padding"
             >
-              <IonSelectOption value="jumbo">Jumbo</IonSelectOption>
-              <IonSelectOption value="nacional">El Nacional</IonSelectOption>
-              <IonSelectOption value="pricemart">Pricemart</IonSelectOption>
+              {suplidor.map((suplidor) => (
+                <IonSelectOption
+                  key={suplidor.id_suplidor}
+                  value={suplidor.nombre_suplidor}
+                >
+                  {suplidor.nombre_suplidor}
+                </IonSelectOption>
+              ))}
             </IonSelect>
           </IonItem>
         </IonList>
@@ -80,9 +147,11 @@ const Entradas: React.FC = () => {
               placeholder="Encargado de entrega"
               className="ion-padding"
             >
-              <IonSelectOption value="metroplaza">Carlos Soto</IonSelectOption>
-              <IonSelectOption value="Santiago">Ramon Ramirez</IonSelectOption>
-              <IonSelectOption value="Santiago">Jeudy Tavarez</IonSelectOption>
+              {user.map((user) => (
+                <IonSelectOption key={user.id_user} value={user.nombre_user}>
+                  {user.nombre_user} {user.apellido_user}
+                </IonSelectOption>
+              ))}
             </IonSelect>
           </IonItem>
         </IonList>
@@ -94,9 +163,11 @@ const Entradas: React.FC = () => {
               placeholder="Quien registra"
               className="ion-padding"
             >
-              <IonSelectOption value="metroplaza">Carlos Soto</IonSelectOption>
-              <IonSelectOption value="Santiago">Ramon Ramirez</IonSelectOption>
-              <IonSelectOption value="Santiago">Jeudy Tavarez</IonSelectOption>
+              {user.map((user) => (
+                <IonSelectOption key={user.id_user} value={user.nombre_user}>
+                  {user.nombre_user} {user.apellido_user}
+                </IonSelectOption>
+              ))}
             </IonSelect>
           </IonItem>
         </IonList>
@@ -108,16 +179,24 @@ const Entradas: React.FC = () => {
               placeholder="Localidad"
               className="ion-padding"
             >
-              <IonSelectOption value="metroplaza">Metroplaza</IonSelectOption>
-              <IonSelectOption value="Santiago">Santiago</IonSelectOption>
+              {local.map((local) => (
+                <IonSelectOption
+                  key={local.id_plaza}
+                  value={local.nombre_local}
+                >
+                  {local.nombre_local}
+                </IonSelectOption>
+              ))}
             </IonSelect>
           </IonItem>
         </IonList>
 
         <IonItem className="ion-padding">
-          <IonLabel position="floating">Cantidad</IonLabel>
+          <IonLabel position="floating">Precio unitario</IonLabel>
           <IonInput type="number" placeholder="Enter text"></IonInput>
         </IonItem>
+
+        <IonButton expand="full">Registrar</IonButton>
       </IonContent>
     </IonPage>
   );

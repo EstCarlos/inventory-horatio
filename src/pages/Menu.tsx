@@ -24,11 +24,13 @@ import { Redirect, Route } from "react-router-dom";
 import Entradas from "./Entradas";
 import Reader from "./Reader";
 import Salidas from "./Salidas";
+import Suplidor from "./Suplidor";
 const Menu: React.FC = () => {
   const paths = [
     { name: "Reader", url: "/app/reader", icon: barChart },
     { name: "Entradas", url: "/app/entradas", icon: homeOutline },
     { name: "Salidas", url: "/app/salidas", icon: navigateCircle },
+    { name: "Suplidores", url: "/app/suplidor", icon: navigateCircle },
   ];
 
   return (
@@ -63,6 +65,7 @@ const Menu: React.FC = () => {
           <Route exact path="/app/entradas" component={Entradas} />
           <Route exact path="/app/salidas" component={Salidas} />
           <Route exact path="/app/reader" component={Reader} />
+          <Route exact path="/app/suplidor" component={Suplidor} />
           <Route>
             <Redirect to="/app/reader" />
           </Route>
