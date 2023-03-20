@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { RouteComponentProps } from "react-router-dom";
 import {
   IonPage,
   IonHeader,
@@ -17,8 +18,9 @@ import {
   IonIcon,
 } from "@ionic/react";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
-import { cameraOutline } from "ionicons/icons";
+import { cameraOutline, arrowBackCircleOutline } from "ionicons/icons";
 
 type Localidad = {
   id_plaza: number;
@@ -37,12 +39,44 @@ type Usuarios = {
   email: string;
 };
 
-const Entradas: React.FC = () => {
-  const [local, setLocal] = useState<Localidad[]>([]);
+interface LocationState {
+  nombre: string;
+  apellido: string;
+}
+
+const Entradas: React.FC<RouteComponentProps<any, {}, LocationState>> = ({
+  location,
+}) => {
+  // const location = useLocation();
+  // const { nombre } = location.state;
+  // console.log(`${nombre}`);
+
+  const [codigo_producto, setCodigo_producto] = useState("");
+
+  const [date, setDate] = useState(new Date());
+
+  const formatDate = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear().toString();
+    return `${day}-${month}-${year}`;
+  };
+  // console.log(formatDate(date));
+
+  const [producto, setProducto] = useState("");
+  const [precio, setPrecio] = useState(0);
+
   const [suplidor, setSuplidor] = useState<Suplidor[]>([]);
+  const [currentSuplidor, setCurrentSuplidor] = useState<string>("");
+
+  const [local, setLocal] = useState<Localidad[]>([]);
+  const [currentLocalidad, setCurrentLocalidad] = useState<string>("");
+
   const [user, setUser] = useState<Usuarios[]>([]);
+  const [inputError, setInputError] = useState(false);
 
   useEffect(() => {
+    //Localidad
     axios
       .get("http://localhost:4000/localidad")
       .then((response) => {
@@ -55,7 +89,11 @@ const Entradas: React.FC = () => {
       });
   }, []);
 
+  const compareLocalidadWith = (a: Localidad, b: Localidad) =>
+    a && b ? a.id_plaza === b.id_plaza : a === b;
+
   useEffect(() => {
+    //suplidor
     axios
       .get("http://localhost:4000/suplidor")
       .then((response) => {
@@ -68,7 +106,11 @@ const Entradas: React.FC = () => {
       });
   }, []);
 
+  const compareSuplidorWith = (a: Suplidor, b: Suplidor) =>
+    a && b ? a.id_suplidor === b.id_suplidor : a === b;
+
   useEffect(() => {
+    //Usuarioss
     axios
       .get("http://localhost:4000/usuarios")
       .then((response) => {
@@ -81,6 +123,31 @@ const Entradas: React.FC = () => {
       });
   }, []);
 
+  const GuardarEntrada = () => {
+    if (!codigo_producto) {
+      setInputError(true);
+      toast.error("Por favor, ingrese un nombre de proveedor");
+      return;
+    }
+
+    // Peticion HTTP
+    axios
+      .post("http://localhost:4000/execsuplidores", {
+        codigo_producto: codigo_producto,
+      })
+      .then((response) => {
+        console.log(response.data);
+        // Limpiar el input después de enviar la petición
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    toast.success("Guardado", {
+      icon: "✅",
+    });
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -88,6 +155,7 @@ const Entradas: React.FC = () => {
           <IonButtons slot="start">
             <IonMenuButton></IonMenuButton>
           </IonButtons>
+
           <IonTitle>Entradas</IonTitle>
         </IonToolbar>
       </IonHeader>
@@ -116,79 +184,56 @@ const Entradas: React.FC = () => {
           <IonInput placeholder="Enter text"></IonInput>
         </IonItem>
 
-        <IonList>
-          <IonItem>
-            <IonSelect
-              interface="popover"
-              placeholder="Suplidor"
-              className="ion-padding"
-            >
-              {suplidor.map((suplidor) => (
-                <IonSelectOption
-                  key={suplidor.id_suplidor}
-                  value={suplidor.nombre_suplidor}
-                >
-                  {suplidor.nombre_suplidor}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
-        </IonList>
-
         <IonItem className="ion-padding">
           <IonLabel position="floating">Cantidad</IonLabel>
           <IonInput type="number" placeholder="Enter text"></IonInput>
         </IonItem>
 
-        <IonList>
-          <IonItem>
-            <IonSelect
-              interface="popover"
-              placeholder="Encargado de entrega"
-              className="ion-padding"
-            >
-              {user.map((user) => (
-                <IonSelectOption key={user.id_user} value={user.nombre_user}>
-                  {user.nombre_user} {user.apellido_user}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
-        </IonList>
+        {/* //TODO: Selecte que me trae el ID del seleccionado (Localidad) */}
 
         <IonList>
           <IonItem>
             <IonSelect
-              interface="popover"
-              placeholder="Quien registra"
-              className="ion-padding"
-            >
-              {user.map((user) => (
-                <IonSelectOption key={user.id_user} value={user.nombre_user}>
-                  {user.nombre_user} {user.apellido_user}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
-        </IonList>
-
-        <IonList>
-          <IonItem>
-            <IonSelect
-              interface="popover"
               placeholder="Localidad"
+              compareWith={compareLocalidadWith}
               className="ion-padding"
+              onIonChange={(ev) =>
+                setCurrentLocalidad(JSON.stringify(ev.detail.value))
+              }
             >
-              {local.map((local) => (
-                <IonSelectOption
-                  key={local.id_plaza}
-                  value={local.nombre_local}
-                >
-                  {local.nombre_local}
+              {local.map((localidad) => (
+                <IonSelectOption key={localidad.id_plaza} value={localidad}>
+                  {localidad.nombre_local}
                 </IonSelectOption>
               ))}
             </IonSelect>
           </IonItem>
+          {/* <IonItem lines="none">
+            <IonLabel>Current localidad: {currentLocalidad}</IonLabel>
+          </IonItem> */}
+        </IonList>
+
+        {/* //TODO: Selecte que me trae el ID del seleccionado (Suplidor) */}
+
+        <IonList>
+          <IonItem>
+            <IonSelect
+              placeholder="Selecciona suplidor"
+              compareWith={compareSuplidorWith}
+              onIonChange={(ev) =>
+                setCurrentSuplidor(JSON.stringify(ev.detail.value))
+              }
+            >
+              {suplidor.map((suplidor) => (
+                <IonSelectOption key={suplidor.id_suplidor} value={suplidor}>
+                  {suplidor.nombre_suplidor}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
+          {/* <IonItem lines="none">
+            <IonLabel>Current suplidor: {currentSuplidor}</IonLabel>
+          </IonItem> */}
         </IonList>
 
         <IonItem className="ion-padding">

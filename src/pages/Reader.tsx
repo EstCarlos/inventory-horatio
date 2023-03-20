@@ -8,8 +8,6 @@ import {
   IonMenuButton,
   IonContent,
   IonList,
-  IonItem,
-  IonLabel,
 } from "@ionic/react";
 import axios from "axios";
 

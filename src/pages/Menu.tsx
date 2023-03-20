@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   IonPage,
   IonHeader,
@@ -10,6 +11,7 @@ import {
   IonMenuToggle,
   IonItem,
   IonIcon,
+  useIonRouter,
   IonButton,
 } from "@ionic/react";
 
@@ -33,6 +35,15 @@ const Menu: React.FC = () => {
     { name: "Suplidores", url: "/app/suplidor", icon: navigateCircle },
   ];
 
+  const navigation = useIonRouter();
+
+  const CerrarSesion = () => {
+    //Eliminar el token del localstorage
+    localStorage.removeItem("token");
+
+    navigation.push("/", "forward", "replace");
+  };
+
   return (
     <IonPage>
       <IonSplitPane contentId="main">
@@ -51,7 +62,7 @@ const Menu: React.FC = () => {
                 </IonItem>
               </IonMenuToggle>
             ))}
-            <IonButton routerLink="/" routerDirection="back" expand="full">
+            <IonButton expand="full" onClick={CerrarSesion}>
               <IonIcon
                 icon={logOutOutline}
                 slot="start"
@@ -61,6 +72,7 @@ const Menu: React.FC = () => {
             </IonButton>
           </IonContent>
         </IonMenu>
+
         <IonRouterOutlet id="main">
           <Route exact path="/app/entradas" component={Entradas} />
           <Route exact path="/app/salidas" component={Salidas} />

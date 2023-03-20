@@ -1,0 +1,9 @@
+.tex {
+  margin-bottom: 20px;
+}
+
+.icono {
+  display: "flex";
+  justify-content: "center";
+  align-items: "center";
+}
