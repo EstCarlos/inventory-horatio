@@ -52,20 +52,22 @@ const Login: React.FC = () => {
       })
       .then((response) => {
         // Obtener el nombre y apellido de la persona logueada
-        const { nombre, apellido } = response.data;
+        const { user } = response.data;
+        console.log(user);
 
         setEmail("");
         setPaswword("");
         // Guardar el token en localStorage
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", user);
 
         toast.success("Usuario Logeado", {
           icon: "👍",
         });
 
         history.push({
-          pathname: "/app/entradas",
-          state: { nombre, apellido },
+          pathname: "/app/reader",
+          state: { user },
         });
 
         // navigation.push("/app/reader", "forward", "replace");
@@ -83,7 +85,7 @@ const Login: React.FC = () => {
           <IonButtons slot="start">
             <IonBackButton>Atras</IonBackButton>
           </IonButtons>
-          <IonButton>
+          <IonButton fill="clear">
             <IonIcon icon={arrowBackCircleOutline} />
           </IonButton>
           <IonTitle>Login</IonTitle>
@@ -91,7 +93,10 @@ const Login: React.FC = () => {
       </IonHeader>
       <IonContent>
         <h1>
-          <b>Login</b>
+          <br />
+          <br />
+          <br />
+          <br />
         </h1>
         <IonItem className="tex">
           <IonLabel position="stacked">Email</IonLabel>

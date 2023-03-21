@@ -8,6 +8,14 @@ import {
   IonMenuButton,
   IonContent,
   IonList,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonLabel,
+  useIonRouter,
+  IonInput,
 } from "@ionic/react";
 import axios from "axios";
 
@@ -24,16 +32,32 @@ type Entrada = {
   costo_por_unidad: number;
 };
 
+type Productos = {
+  codigo_producto: string;
+  nombre_producto: string;
+  inventario_actual: number;
+};
+
 const Reader: React.FC = () => {
-  const [entradas, setEntradas] = useState<Entrada[]>([]);
+  const navigation = useIonRouter();
+  useEffect(() => {
+    //Veificar si hay un token en el Localstorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      //verificar a la pagina principal si hay un token
+      navigation.push("/register", "forward", "replace");
+    }
+  }, []);
+
+  const [productos, setProuctos] = useState<Productos[]>([]);
 
   useEffect(() => {
     const getEntradas = async () => {
       try {
-        const response = await axios.get<Entrada[]>(
-          "http://localhost:4000/entradas"
+        const response = await axios.get<Productos[]>(
+          "http://localhost:4000/productos"
         );
-        setEntradas(response.data);
+        setProuctos(response.data);
       } catch (error) {
         console.error(error);
       }
@@ -52,15 +76,18 @@ const Reader: React.FC = () => {
           <IonTitle>Reader</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent>
-        <IonList>
-          {/* {entradas.map((entrada) => (
-            <IonItem key={entrada.Codigo_producto}>
-              <IonLabel>{entrada.Producto}</IonLabel>
-            </IonItem>
-          ))} */}
-        </IonList>
-      </IonContent>
+
+      {productos.map((produc) => (
+        <IonCard>
+          <IonCardHeader>
+            <IonCardSubtitle>Codigo: {produc.codigo_producto}</IonCardSubtitle>
+            <IonCardTitle>{produc.nombre_producto}</IonCardTitle>
+          </IonCardHeader>
+          <IonCardContent>
+            Existencia: {produc.inventario_actual}
+          </IonCardContent>
+        </IonCard>
+      ))}
     </IonPage>
   );
 };
