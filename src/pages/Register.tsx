@@ -69,7 +69,7 @@ const Register: React.FC = () => {
         toast.success("Usuario Registrado", {
           icon: "👍",
         });
-        navigation.push("/app", "forward", "replace");
+        navigation.push("/app/reader", "forward", "replace");
       })
       .catch((error) => {
         console.log(error);

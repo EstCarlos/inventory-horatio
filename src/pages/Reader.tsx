@@ -15,7 +15,9 @@ import {
   IonCardTitle,
   IonLabel,
   useIonRouter,
+  IonItem,
   IonInput,
+  IonSearchbar,
 } from "@ionic/react";
 import axios from "axios";
 
@@ -33,13 +35,17 @@ type Entrada = {
 };
 
 type Productos = {
+  id: string;
   codigo_producto: string;
   nombre_producto: string;
+  id_suplidor: number;
+  id_plaza: string;
   inventario_actual: number;
 };
 
 const Reader: React.FC = () => {
   const navigation = useIonRouter();
+
   useEffect(() => {
     //Veificar si hay un token en el Localstorage
     const token = localStorage.getItem("token");
@@ -49,22 +55,39 @@ const Reader: React.FC = () => {
     }
   }, []);
 
-  const [productos, setProuctos] = useState<Productos[]>([]);
+  const [productos, setProductos] = useState<Productos[]>([]);
+
+  const getProductos = async () => {
+    try {
+      const response = await axios.get<Productos[]>(
+        "http://localhost:4000/productos"
+      );
+      setProductos(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    const getEntradas = async () => {
-      try {
-        const response = await axios.get<Productos[]>(
-          "http://localhost:4000/productos"
-        );
-        setProuctos(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    getEntradas();
+    getProductos();
   }, []);
+
+  const [busqueda, setBusqueda] = useState("");
+  const buscarProductos = (event: CustomEvent) => {
+    const texto = event.detail.value;
+    setBusqueda(texto);
+
+    if (texto.trim() === "") {
+      // Si no hay texto de búsqueda, muestra todos los productos
+      getProductos();
+    } else {
+      // Filtra los productos según el texto de búsqueda
+      const productosFiltrados = productos.filter((producto) =>
+        producto.nombre_producto.toLowerCase().includes(texto.toLowerCase())
+      );
+      setProductos(productosFiltrados);
+    }
+  };
 
   return (
     <IonPage>
@@ -76,18 +99,27 @@ const Reader: React.FC = () => {
           <IonTitle>Reader</IonTitle>
         </IonToolbar>
       </IonHeader>
-
-      {productos.map((produc) => (
-        <IonCard>
-          <IonCardHeader>
-            <IonCardSubtitle>Codigo: {produc.codigo_producto}</IonCardSubtitle>
-            <IonCardTitle>{produc.nombre_producto}</IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            Existencia: {produc.inventario_actual}
-          </IonCardContent>
-        </IonCard>
-      ))}
+      <IonContent>
+        <IonSearchbar onIonChange={buscarProductos} debounce={1000} />
+        {/* <IonList>
+          {results.map((result) => (
+            <IonItem>{result}</IonItem>
+          ))}
+        </IonList> */}
+        {productos.map((produc) => (
+          <IonCard key={produc.id}>
+            <IonCardHeader>
+              <IonCardSubtitle>
+                Codigo: {produc.codigo_producto}
+              </IonCardSubtitle>
+              <IonCardTitle>{produc.nombre_producto}</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              Existencia: {produc.inventario_actual}
+            </IonCardContent>
+          </IonCard>
+        ))}
+      </IonContent>
     </IonPage>
   );
 };

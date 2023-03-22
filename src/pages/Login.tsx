@@ -21,6 +21,8 @@ import toast, { Toaster } from "react-hot-toast";
 import { arrowBackCircleOutline } from "ionicons/icons";
 
 const Login: React.FC = () => {
+  const url = "https://85e0-168-228-235-202.ngrok.io";
+
   const [email, setEmail] = useState("");
   const [password, setPaswword] = useState("");
   const [inputError, setInputError] = useState(false);
@@ -83,9 +85,14 @@ const Login: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonBackButton>Atras</IonBackButton>
+            <IonBackButton></IonBackButton>
           </IonButtons>
-          <IonButton fill="clear">
+          <IonButton
+            fill="clear"
+            onClick={() => {
+              navigation.goBack();
+            }}
+          >
             <IonIcon icon={arrowBackCircleOutline} />
           </IonButton>
           <IonTitle>Login</IonTitle>

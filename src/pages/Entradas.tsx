@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RouteComponentProps, useLocation } from "react-router-dom";
+
 import {
   IonPage,
   IonHeader,
@@ -15,13 +15,10 @@ import {
   IonList,
   IonSelect,
   IonSelectOption,
-  IonIcon,
-  useIonRouter,
 } from "@ionic/react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
-import { cameraOutline, arrowBackCircleOutline } from "ionicons/icons";
 import { BarcodeScanner } from "@awesome-cordova-plugins/barcode-scanner";
 
 type Localidad = {
@@ -51,24 +48,22 @@ interface User {
 }
 
 const Entradas: React.FC = () => {
-  const navigation = useIonRouter();
-  useEffect(() => {
-    //Veificar si hay un token en el Localstorage
-    const token = localStorage.getItem("token");
-    if (!token) {
-      //verificar a la pagina principal si hay un token
-      navigation.push("/register", "forward", "replace");
-    }
-  }, []);
+  // const navigation = useIonRouter();
+  // useEffect(() => {
+  //   //Veificar si hay un token en el Localstorage
+  //   const token = localStorage.getItem("token");
+  //   if (!token) {
+  //     //verificar a la pagina principal si hay un token
+  //     navigation.push("/register", "forward", "replace");
+  //   }
+  // }, []);
 
-  const location = useLocation();
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState("");
 
   const [codigo_producto, setCodigo_producto] = useState("");
 
+  //TODO: Aqui usamos la funcion para tener la fecha en formato (dd-mm-yyyy) (ENTRADAS)
   const [date, setDate] = useState(new Date());
-
-  // Aqui usamos la funcion para tener la fecha en formato (dd-mm-yyyy)
   const formatDate = (date: Date): string => {
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -87,7 +82,6 @@ const Entradas: React.FC = () => {
   const [local, setLocal] = useState<Localidad[]>([]);
   const [currentLocalidad, setCurrentLocalidad] = useState<string>("");
 
-  // const [user, setUser] = useState<Usuarios[]>([]);
   const [inputError, setInputError] = useState(false);
 
   useEffect(() => {
@@ -124,6 +118,7 @@ const Entradas: React.FC = () => {
   const compareSuplidorWith = (a: Suplidor, b: Suplidor) =>
     a && b ? a.id_suplidor === b.id_suplidor : a === b;
 
+  //TODO: CALCULAR EL COSTO PRECIO / CANTIDAD (ENTRADAS)
   function calcularCosto(
     precio: number | undefined,
     cantidad: number | undefined
@@ -140,6 +135,7 @@ const Entradas: React.FC = () => {
     }
   }
 
+  //TODO: REGISTRAR LA ENTRADA DE LOS PRODUCTOS Y EJECUTRAR EL PROCEDIMIENTO (ENTRADAS)
   const GuardarEntrada = () => {
     if (!codigo_producto || !producto || !precio || !cantidad) {
       setInputError(true);
@@ -157,8 +153,8 @@ const Entradas: React.FC = () => {
         id_suplidor: currentSuplidor,
         id_plaza: currentLocalidad,
         cantidad: cantidad,
-        encargado_entrega: "USER",
-        quien_registra: "USER",
+        encargado_entrega: user,
+        quien_registra: user,
         costo_por_unidad: costo,
       })
       .then((response) => {
@@ -178,10 +174,16 @@ const Entradas: React.FC = () => {
     });
   };
 
+  //TODO: OBTENER EL NOMBRE DESDE EL LOCALSTORAGE Y GUARDARLO EN EL ESTADO (ENTRADAS)
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      setUser(storedUser);
+    }
   }, []);
 
+  //TODO: IMPLEMENTAR EL LECTOR DE CODIGO DE BARRAS
   const openScanner = async () => {
     const data = await BarcodeScanner.scan();
     console.log(`Barcode data: ${data.text}`);
@@ -201,16 +203,17 @@ const Entradas: React.FC = () => {
 
       {/* <IonTitle className="ion-padding">Registro de entradas</IonTitle> */}
       <IonContent>
-        <IonItem>
+        {/* <IonItem>
           <IonTitle className="ion-padding">
             <IonIcon icon={cameraOutline} />
             <IonButton onClick={openScanner}>Scan barcode</IonButton>
           </IonTitle>
-        </IonItem>
+        </IonItem> */}
 
         <IonItem className="ion-padding">
           <IonLabel position="floating">Codigo de Producto</IonLabel>
           <IonInput
+            required
             placeholder="Enter text"
             onIonChange={(event) => {
               setCodigo_producto(event.detail.value!);
