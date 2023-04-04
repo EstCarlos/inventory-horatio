@@ -1,30 +1,26 @@
-import {
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonButton,
-} from "@ionic/react";
+import { IonList, IonItem, IonLabel } from "@ionic/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { apiUrl } from "../config";
 
 const SuplidoresTable: React.FC = () => {
   const [suplidores, setSuplidores] = useState([]);
 
-  useEffect(() => {
+  //TODO: Funcion para obtener los suplidores
+  const obtenerSuplidores = () => {
     axios
-      .get("http://localhost:4000/suplidor")
+      .get(`${apiUrl}suplidor`)
       .then((response) => {
         setSuplidores(response.data);
       })
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    obtenerSuplidores();
+  }, [suplidores]);
 
   return (
     <IonList>

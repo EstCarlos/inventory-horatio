@@ -17,7 +17,6 @@ import {
 
 import {
   homeOutline,
-  newspaperOutline,
   logOutOutline,
   navigateCircle,
   barChart,
@@ -27,6 +26,7 @@ import Entradas from "./Entradas";
 import Reader from "./Reader";
 import Salidas from "./Salidas";
 import Suplidor from "./Suplidor";
+
 const Menu: React.FC = () => {
   const paths = [
     { name: "Reader", url: "/app/reader", icon: barChart },
@@ -40,6 +40,7 @@ const Menu: React.FC = () => {
   const CerrarSesion = () => {
     //Eliminar el token del localstorage
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
     navigation.push("/", "forward", "replace");
   };

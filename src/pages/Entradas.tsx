@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 import {
   IonPage,
@@ -15,11 +16,16 @@ import {
   IonList,
   IonSelect,
   IonSelectOption,
+  RefresherEventDetail,
+  IonRefresher,
+  IonRefresherContent,
+  useIonRouter,
 } from "@ionic/react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
 import { BarcodeScanner } from "@awesome-cordova-plugins/barcode-scanner";
+import { apiUrl } from "../config";
 
 type Localidad = {
   id_plaza: number;
@@ -38,25 +44,21 @@ type Usuarios = {
   email: string;
 };
 
-// interface User {
-//   nombre: string;
-//   apellido: string;
-// }
-
 interface User {
   user: string;
 }
 
 const Entradas: React.FC = () => {
-  // const navigation = useIonRouter();
-  // useEffect(() => {
-  //   //Veificar si hay un token en el Localstorage
-  //   const token = localStorage.getItem("token");
-  //   if (!token) {
-  //     //verificar a la pagina principal si hay un token
-  //     navigation.push("/register", "forward", "replace");
-  //   }
-  // }, []);
+  //TODO: Verificar si existe un token o no para sacarlo de la ruta
+  const navigation = useIonRouter();
+  useEffect(() => {
+    //Veificar si hay un token en el Localstorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      //verificar a la pagina principal si hay un token
+      navigation.push("/register", "forward", "replace");
+    }
+  }, []);
 
   const [user, setUser] = useState("");
 
@@ -74,7 +76,7 @@ const Entradas: React.FC = () => {
   const [producto, setProducto] = useState("");
   const [precio, setPrecio] = useState<number>();
   const [cantidad, setCantidad] = useState<number>();
-  const [costo, setCosto] = useState<number>();
+  const [costo, setCosto] = useState<number | undefined>(undefined);
 
   const [suplidor, setSuplidor] = useState<Suplidor[]>([]);
   const [currentSuplidor, setCurrentSuplidor] = useState<string>("");
@@ -87,7 +89,7 @@ const Entradas: React.FC = () => {
   useEffect(() => {
     //Localidad
     axios
-      .get("http://localhost:4000/localidad")
+      .get(`${apiUrl}localidad`)
       .then((response) => {
         // Aquí puedes manejar la respuesta de la API
         setLocal(response.data);
@@ -96,7 +98,7 @@ const Entradas: React.FC = () => {
         // Aquí puedes manejar cualquier error que se haya producido
         console.error(error);
       });
-  }, []);
+  }, [local]);
 
   const compareLocalidadWith = (a: Localidad, b: Localidad) =>
     a && b ? a.id_plaza === b.id_plaza : a === b;
@@ -104,7 +106,7 @@ const Entradas: React.FC = () => {
   useEffect(() => {
     //suplidor
     axios
-      .get("http://localhost:4000/suplidor")
+      .get(`${apiUrl}suplidor`)
       .then((response) => {
         // Aquí puedes manejar la respuesta de la API
         setSuplidor(response.data);
@@ -113,12 +115,12 @@ const Entradas: React.FC = () => {
         // Aquí puedes manejar cualquier error que se haya producido
         console.error(error);
       });
-  }, []);
+  }, [suplidor]);
 
   const compareSuplidorWith = (a: Suplidor, b: Suplidor) =>
     a && b ? a.id_suplidor === b.id_suplidor : a === b;
 
-  //TODO: CALCULAR EL COSTO PRECIO / CANTIDAD (ENTRADAS)
+  //TODO: CALCULAR EL COSTO PRECIO / CANTIDAD (ENTRADAS) ✅
   function calcularCosto(
     precio: number | undefined,
     cantidad: number | undefined
@@ -134,18 +136,21 @@ const Entradas: React.FC = () => {
       setCosto(undefined);
     }
   }
+  useEffect(() => {
+    calcularCosto(precio, cantidad);
+  }, [precio, cantidad]);
 
   //TODO: REGISTRAR LA ENTRADA DE LOS PRODUCTOS Y EJECUTRAR EL PROCEDIMIENTO (ENTRADAS)
   const GuardarEntrada = () => {
-    if (!codigo_producto || !producto || !precio || !cantidad) {
+    if (!codigo_producto || !cantidad) {
       setInputError(true);
-      toast.error("Por favor, ingrese un nombre de proveedor");
+      toast.error("Por favor, complete los espacios en blancos");
       return;
     }
 
     // Peticion HTTP
     axios
-      .post("http://localhost:4000/execentradas", {
+      .post(`${apiUrl}execentradas`, {
         codigo_producto: codigo_producto,
         fecha: formatDate(date),
         producto: producto,
@@ -160,10 +165,7 @@ const Entradas: React.FC = () => {
       .then((response) => {
         console.log(response.data);
         // Limpiar el input después de enviar la petición
-        setCodigo_producto(" ");
-        setProducto(" ");
-        setPrecio(NaN);
-        setCantidad(NaN);
+        setRegistrado(true);
       })
       .catch((error) => {
         console.error(error);
@@ -174,7 +176,18 @@ const Entradas: React.FC = () => {
     });
   };
 
-  //TODO: OBTENER EL NOMBRE DESDE EL LOCALSTORAGE Y GUARDARLO EN EL ESTADO (ENTRADAS)
+  //TODO: Limpiar los campos cuando se confirme la peticion
+  const [registrado, setRegistrado] = useState(false);
+  useEffect(() => {
+    if (registrado) {
+      setCodigo_producto("");
+      setProducto("");
+      setPrecio(undefined);
+      setCantidad(undefined);
+    }
+  }, [registrado]);
+
+  //TODO: OBTENER EL NOMBRE DESDE EL LOCALSTORAGE Y GUARDARLO EN EL ESTADO (ENTRADAS) ✅
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
 
@@ -183,10 +196,64 @@ const Entradas: React.FC = () => {
     }
   }, []);
 
-  //TODO: IMPLEMENTAR EL LECTOR DE CODIGO DE BARRAS
+  //TODO: IMPLEMENTAR EL LECTOR DE CODIGO DE BARRAS (Entradas) ⚠️
   const openScanner = async () => {
     const data = await BarcodeScanner.scan();
     console.log(`Barcode data: ${data.text}`);
+  };
+
+  //TODO: REFRESCAR LA PAGINA (SALIDAS) ✅
+  function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
+    setTimeout(() => {
+      // Any calls to load data go here
+
+      event.detail.complete();
+    }, 2000);
+  }
+
+  //TODO: FUNCIONALIDAD SI EXISTE UN PRODUCTO DESHABILITAR EL INPUT DEL NOMBRE
+  const [productoExists, setProductoExists] = useState(false);
+
+  const handleCodigoProductoChange = async (event: any) => {
+    const codigo_producto = event.detail.value!;
+    setCodigo_producto(codigo_producto);
+
+    if (codigo_producto) {
+      try {
+        const response = await axios.get(
+          `${apiUrl}productos/${codigo_producto}`
+        );
+        const data = response.data;
+        if (data.length > 0) {
+          setProducto(data[0].nombre_producto);
+          setProductoExists(true);
+        } else {
+          setProducto("");
+          setProductoExists(false);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  //TODO: AGREGAR NOTIFICACIONES LOCALES PARA LAS ALERTAS DEL STOCK
+  const scheduleNotification = async () => {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          title: "¡Hola!",
+          body: "Esta es una notificación de prueba",
+          id: 1,
+          schedule: { at: new Date(Date.now() + 10000) },
+          actionTypeId: "",
+          extra: null,
+        },
+      ],
+    });
+  };
+  const handleScheduleNotification = () => {
+    scheduleNotification();
   };
 
   return (
@@ -201,25 +268,22 @@ const Entradas: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      {/* <IonTitle className="ion-padding">Registro de entradas</IonTitle> */}
       <IonContent>
-        {/* <IonItem>
-          <IonTitle className="ion-padding">
-            <IonIcon icon={cameraOutline} />
-            <IonButton onClick={openScanner}>Scan barcode</IonButton>
-          </IonTitle>
-        </IonItem> */}
-
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
         <IonItem className="ion-padding">
           <IonLabel position="floating">Codigo de Producto</IonLabel>
           <IonInput
             required
             placeholder="Enter text"
-            onIonChange={(event) => {
-              setCodigo_producto(event.detail.value!);
-            }}
+            onIonChange={handleCodigoProductoChange}
           ></IonInput>
         </IonItem>
+
+        {/* <IonItem className="ion-padding">
+          <IonButton onClick={openScanner}>Scan barcode</IonButton>
+        </IonItem> */}
 
         <IonItem className="ion-padding">
           <IonLabel position="floating">Nombre</IonLabel>
@@ -228,6 +292,8 @@ const Entradas: React.FC = () => {
             onIonChange={(event) => {
               setProducto(event.detail.value!);
             }}
+            disabled={productoExists}
+            value={producto}
           ></IonInput>
         </IonItem>
 

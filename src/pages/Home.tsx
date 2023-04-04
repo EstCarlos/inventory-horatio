@@ -8,9 +8,21 @@ import {
   IonTitle,
   IonToolbar,
 } from "@ionic/react";
-import React from "react";
+import React, { useEffect } from "react";
 import "./Home.css";
 import { BarcodeScanner } from "@ionic-native/barcode-scanner";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import axios from "axios";
+import { Plugins } from "@capacitor/core";
+
+type Productos = {
+  id: string;
+  codigo_producto: string;
+  nombre_producto: string;
+  nombre_suplidor: number;
+  nombre_local: string;
+  inventario_actual: number;
+};
 
 class Home extends React.Component {
   state = {
@@ -45,6 +57,9 @@ class Home extends React.Component {
       );
     };
 
+    //TODO: AGREGAR NOTIFICACIONES LOCALES PARA LAS ALERTAS DEL STOCK
+    const { Storage } = Plugins;
+
     return (
       <IonPage>
         <IonHeader>
@@ -53,6 +68,7 @@ class Home extends React.Component {
           </IonToolbar>
         </IonHeader>
         <IonContent className="ion-padding">
+          <IonButton>Programar notificación</IonButton>
           <strong>Scan Content</strong>
           <IonButton color="danger" expand="block" onClick={() => dataToScan()}>
             Scan Data

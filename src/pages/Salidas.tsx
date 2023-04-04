@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   IonPage,
   IonHeader,
@@ -24,22 +24,24 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
+  useIonRouter,
 } from "@ionic/react";
 import axios from "axios";
 
 import toast, { Toaster } from "react-hot-toast";
+import { apiUrl } from "../config";
 
 type Productos = {
   id: string;
   codigo_producto: string;
   nombre_producto: string;
   id_suplidor: number;
-  id_plaza: string;
+  id_plaza: number;
   inventario_actual: number;
 };
 
 const Salidas: React.FC = () => {
-  //TODO: Aqui usamos la funcion para tener la fecha en formato (dd-mm-yyyy) (SALIDAS)
+  //TODO: Aqui usamos la funcion para tener la fecha en formato (dd-mm-yyyy) (SALIDAS) ✅
   const [date, setDate] = useState(new Date());
   const formatDate = (date: Date): string => {
     const year = date.getFullYear().toString();
@@ -49,9 +51,19 @@ const Salidas: React.FC = () => {
     const minutes = date.getMinutes().toString().padStart(2, "0");
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
-  // console.log(formatDate(date));
 
-  //TODO: PETICION  HTTP PARA EL ENDPOINT DE LOS PRODUCTOS (SALIDAS)
+  //TODO: Verificar si existe un token o no para sacarlo de la ruta
+  const navigation = useIonRouter();
+  useEffect(() => {
+    //Veificar si hay un token en el Localstorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      //verificar a la pagina principal si hay un token
+      navigation.push("/register", "forward", "replace");
+    }
+  }, []);
+
+  //TODO: PETICION  HTTP PARA EL ENDPOINT DE LOS PRODUCTOS (SALIDAS) ✅
   const [productos, setProductos] = useState<Productos[]>([]);
   useEffect(() => {
     getProductos();
@@ -59,16 +71,14 @@ const Salidas: React.FC = () => {
 
   const getProductos = async () => {
     try {
-      const response = await axios.get<Productos[]>(
-        "http://localhost:4000/productos"
-      );
+      const response = await axios.get<Productos[]>(`${apiUrl}productos`);
       setProductos(response.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  //TODO: AQUI ESTAMOS IMPLEMENTANDO LA BUSQUEDA DE LOS PRODUCTOS (SALIDAS)
+  //TODO: AQUI ESTAMOS IMPLEMENTANDO LA BUSQUEDA DE LOS PRODUCTOS (SALIDAS) ✅
   const [, setBusqueda] = useState("");
   const buscarProductos = (event: CustomEvent) => {
     const texto = event.detail.value;
@@ -86,7 +96,7 @@ const Salidas: React.FC = () => {
     }
   };
 
-  //TODO: PARA ABRIR EL MODAL DEL PRODUCTO SELECCIONADO Y EJECUTAR PROCEDIMIENTO (SALIDAS)
+  //TODO: PARA ABRIR EL MODAL DEL PRODUCTO SELECCIONADO Y EJECUTAR PROCEDIMIENTO (SALIDAS)✅
   const [cantidad, setCantidad] = useState<number>(0);
 
   const [selectedProduct, setSelectedProduct] = useState<Productos>();
@@ -98,9 +108,10 @@ const Salidas: React.FC = () => {
   };
 
   const Confirm = () => {
-    //FIXME: HAY QUE ARREGLAR LAS ENTRADAS DE PRECIO UNITARIO Y EL PRECIO TOTAL (SALIDAS)
+    //FIXME: HAY QUE ARREGLAR LAS ENTRADAS DE PRECIO UNITARIO Y EL PRECIO TOTAL (SALIDAS) ⚠️
+
     axios
-      .post("http://localhost:4000/execsalidas", {
+      .post(`${apiUrl}execsalidas`, {
         //AQUI VAN LOS VALORE
         codigo_producto: selectedProduct?.codigo_producto,
         fecha: formatDate(date),
@@ -124,13 +135,15 @@ const Salidas: React.FC = () => {
     setShowModal(false);
   };
 
-  //TODO: REFRESCAR LA PAGINA (SALIDAS)
+  //TODO: REFRESCAR LA PAGINA (SALIDAS) ✅
   function handleRefresh(event: CustomEvent<RefresherEventDetail>) {
     setTimeout(() => {
       // Any calls to load data go here
+      getProductos();
       event.detail.complete();
     }, 2000);
   }
+
   return (
     <IonPage>
       <IonHeader>

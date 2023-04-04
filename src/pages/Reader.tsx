@@ -7,19 +7,16 @@ import {
   IonButtons,
   IonMenuButton,
   IonContent,
-  IonList,
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardSubtitle,
   IonCardTitle,
-  IonLabel,
   useIonRouter,
-  IonItem,
-  IonInput,
   IonSearchbar,
 } from "@ionic/react";
 import axios from "axios";
+import { apiUrl } from "../config";
 
 type Entrada = {
   Fecha: string;
@@ -46,6 +43,7 @@ type Productos = {
 const Reader: React.FC = () => {
   const navigation = useIonRouter();
 
+  const [productos, setProductos] = useState<Productos[]>([]);
   useEffect(() => {
     //Veificar si hay un token en el Localstorage
     const token = localStorage.getItem("token");
@@ -55,13 +53,50 @@ const Reader: React.FC = () => {
     }
   }, []);
 
-  const [productos, setProductos] = useState<Productos[]>([]);
+  // const getProductos = async () => {
+  //   try {
+  //     const response = await axios.get<Productos[]>(
+  //       "http://localhost:4000/productos"
+  //     );
+  //     setProductos(response.data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getProductos();
+  // }, []);
+
+  const [busqueda, setBusqueda] = useState("");
+  // const buscarProductos = (event: CustomEvent) => {
+  //   const texto = event.detail.value;
+  //   setBusqueda(texto);
+
+  //   if (texto.trim() === "") {
+  //     // Si no hay texto de búsqueda, muestra todos los productos
+  //     getProductos();
+  //   } else {
+  //     // Filtra los productos según el texto de búsqueda
+  //     const productosFiltrados = productos.filter((producto) =>
+  //       producto.nombre_producto.toLowerCase().includes(texto.toLowerCase())
+  //     );
+  //     setProductos(productosFiltrados);
+  //   }
+  // };
 
   const getProductos = async () => {
     try {
-      const response = await axios.get<Productos[]>(
-        "http://localhost:4000/productos"
-      );
+      const response = await axios.get<Productos[]>(`${apiUrl}productos`);
+      setProductos(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const actualizarProductos = async () => {
+    try {
+      const response = await axios.get<Productos[]>(`${apiUrl}productos`);
       setProductos(response.data);
     } catch (error) {
       console.error(error);
@@ -72,14 +107,13 @@ const Reader: React.FC = () => {
     getProductos();
   }, []);
 
-  const [busqueda, setBusqueda] = useState("");
   const buscarProductos = (event: CustomEvent) => {
     const texto = event.detail.value;
     setBusqueda(texto);
 
     if (texto.trim() === "") {
       // Si no hay texto de búsqueda, muestra todos los productos
-      getProductos();
+      actualizarProductos();
     } else {
       // Filtra los productos según el texto de búsqueda
       const productosFiltrados = productos.filter((producto) =>
@@ -101,11 +135,7 @@ const Reader: React.FC = () => {
       </IonHeader>
       <IonContent>
         <IonSearchbar onIonChange={buscarProductos} debounce={1000} />
-        {/* <IonList>
-          {results.map((result) => (
-            <IonItem>{result}</IonItem>
-          ))}
-        </IonList> */}
+
         {productos.map((produc) => (
           <IonCard key={produc.id}>
             <IonCardHeader>

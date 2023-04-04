@@ -24,6 +24,8 @@ import "./theme/variables.css";
 import Register from "./pages/Register";
 import Menu from "./pages/Menu";
 import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Reader from "./pages/Reader";
 // import Entradas from "./pages/Entradas";
 
 setupIonicReact();

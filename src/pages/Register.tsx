@@ -20,13 +20,23 @@ import "./Register.css";
 import Login from "./Login";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { apiUrl } from "../config";
 
+type Productos = {
+  id: string;
+  codigo_producto: string;
+  nombre_producto: string;
+  nombre_suplidor: number;
+  nombre_local: string;
+  inventario_actual: number;
+};
 const Register: React.FC = () => {
   const [nombre, setnombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPaswword] = useState("");
-  const [inputError, setInputError] = useState(false);
+  const [, setInputError] = useState(false);
 
   const navigation = useIonRouter();
 
@@ -52,7 +62,7 @@ const Register: React.FC = () => {
 
     //Peticion HTTP
     axios
-      .post("http://localhost:4000/registro", {
+      .post(`${apiUrl}registro`, {
         nombre: nombre,
         apellido: apellido,
         email: email,
@@ -64,17 +74,60 @@ const Register: React.FC = () => {
         setApellido("");
         setEmail("");
         setPaswword("");
-        // Guardar el token en localStorage
-        localStorage.setItem("token", response.data.token);
+
         toast.success("Usuario Registrado", {
           icon: "👍",
         });
-        navigation.push("/app/reader", "forward", "replace");
       })
       .catch((error) => {
         console.log(error);
       });
   };
+
+  const getProductos = async () => {
+    try {
+      const response = await axios.get<Productos[]>(`${apiUrl}stock`);
+      console.log(response.data);
+
+      const lowStockProducts: string[] = [];
+      response.data.map((producto) => {
+        console.log(producto);
+        if (producto.inventario_actual < 5) {
+          lowStockProducts.push(producto.nombre_producto);
+        }
+      });
+      if (lowStockProducts.length > 0) {
+        scheduleNotification(lowStockProducts.join(", "));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const scheduleNotification = (message: string) => {
+    LocalNotifications.schedule({
+      notifications: [
+        {
+          title: "Inventario bajo",
+          body: `Los siguientes productos tienen un inventario actual menor a 5: ${message}`,
+          id: 1,
+          schedule: { at: new Date(Date.now() + 1000 * 5) },
+
+          extra: null,
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      getProductos();
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   return (
     <IonPage>

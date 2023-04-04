@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   IonPage,
   IonHeader,
@@ -12,10 +12,12 @@ import {
   IonInput,
   IonButton,
   useIonLoading,
+  useIonRouter,
 } from "@ionic/react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import SuplidoresTable from "../components/SuplidoresTable";
+import { apiUrl } from "../config";
 
 const Suplidor: React.FC = () => {
   const [nombreSuplidor, setNombreSuplidor] = useState("");
@@ -33,7 +35,7 @@ const Suplidor: React.FC = () => {
     }
     // Peticion HTTP
     axios
-      .post("http://localhost:4000/execsuplidores", {
+      .post(`${apiUrl}execsuplidores`, {
         nombre_suplidor: nombreSuplidor,
       })
       .then((response) => {
@@ -49,6 +51,16 @@ const Suplidor: React.FC = () => {
     });
   };
 
+  //TODO: Verificar si existe un token o no para sacarlo de la ruta
+  const navigation = useIonRouter() as any;
+  useEffect(() => {
+    //Veificar si hay un token en el Localstorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      //verificar a la pagina principal si hay un token
+      navigation.replace("/register", "forward");
+    }
+  }, []);
   return (
     <IonPage>
       <IonHeader>

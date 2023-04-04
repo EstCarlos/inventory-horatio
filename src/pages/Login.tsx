@@ -15,22 +15,25 @@ import {
   IonButton,
   useIonRouter,
   IonIcon,
+  useIonViewDidEnter,
 } from "@ionic/react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { arrowBackCircleOutline } from "ionicons/icons";
+import { apiUrl } from "../config";
 
 const Login: React.FC = () => {
-  const url = "https://85e0-168-228-235-202.ngrok.io";
-
   const [email, setEmail] = useState("");
   const [password, setPaswword] = useState("");
-  const [inputError, setInputError] = useState(false);
+  const [, setInputError] = useState(false);
 
   const navigation = useIonRouter();
   const history = useHistory();
 
+  // const urlIp = "http://192.168.1.10:4000/";
+
   useEffect(() => {
+    console.log(apiUrl);
     //Veificar si hay un token en el Localstorage
     const token = localStorage.getItem("token");
     if (token) {
@@ -48,7 +51,7 @@ const Login: React.FC = () => {
 
     //Peticion HTTP
     axios
-      .post("http://localhost:4000/login", {
+      .post(`${apiUrl}login`, {
         email: email,
         password: password,
       })
